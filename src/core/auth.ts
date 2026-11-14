@@ -6,15 +6,26 @@ import { hasPermission, permissionsFor } from './permissions.js';
 const ITER = 100_000;
 const enc = new TextEncoder();
 
-function b64(buf: ArrayBuffer): string {
-  return Buffer.from(new Uint8Array(buf)).toString('base64');
+/** Base64 helpers built on btoa/atob so the same code runs on Node and Workers (no Buffer). */
+function b64(buf: ArrayBuffer | Uint8Array): string {
+  const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s);
+}
+
+function fromB64(text: string): Uint8Array {
+  const raw = atob(text);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
 }
 
 /** PBKDF2-SHA256 via Web Crypto: runs unchanged on Node 20 and Cloudflare Workers. */
 export async function hashPassword(password: string): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: ITER, hash: 'SHA-256' }, key, 256);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: salt as unknown as BufferSource, iterations: ITER, hash: 'SHA-256' }, key, 256);
   return `pbkdf2$${ITER}$${b64(salt.buffer)}$${b64(bits)}`;
 }
 
@@ -22,9 +33,9 @@ export async function verifyPassword(password: string, stored: string): Promise<
   try {
     const [scheme, iter, saltB64, hashB64] = stored.split('$');
     if (scheme !== 'pbkdf2') return false;
-    const salt = Uint8Array.from(Buffer.from(saltB64, 'base64'));
+    const salt = fromB64(saltB64);
     const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: Number(iter), hash: 'SHA-256' }, key, 256);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: salt as unknown as BufferSource, iterations: Number(iter), hash: 'SHA-256' }, key, 256);
     return b64(bits) === hashB64;
   } catch {
     return false;
@@ -32,7 +43,8 @@ export async function verifyPassword(password: string, stored: string): Promise<
 }
 
 export function randomToken(bytes = 32): string {
-  return Buffer.from(crypto.getRandomValues(new Uint8Array(bytes))).toString('base64url');
+  const raw = b64(crypto.getRandomValues(new Uint8Array(bytes)));
+  return raw.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 export const SESSION_COOKIE = 'scc_session';

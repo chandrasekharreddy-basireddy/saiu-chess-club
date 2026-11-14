@@ -1,0 +1,18 @@
+name = "saiu-chess-club"
+main = "dist/worker.js"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "web"
+binding = "ASSETS"
+
+# Durable, zero-cost storage on Cloudflare's free tier (no secrets required).
+[[d1_databases]]
+binding = "DB"
+database_name = "saiu-chess-club"
+database_id = "0e85f6d4-2522-4d9f-8159-5b93e60d8f1b"
+
+# Optional: institutional Postgres. Provide as Worker secrets and the platform
+# switches to Supabase PostgREST over HTTPS (see src/core/repo-supabase.ts).
+#   wrangler secret put SUPABASE_URL
+#   wrangler secret put SUPABASE_KEY

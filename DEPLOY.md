@@ -14,21 +14,6 @@ static SPA, backed by a D1 database. Everything below is free tier.
 No secrets are required for durable storage: the Worker prefers Supabase secrets, then the D1
 binding, then an in-memory store.
 
-## Push the source first
-
-This repository currently holds only the docs and CI workflow — the platform source ships in
-the `saiu-chess-club.zip` archive. Unzip it at the repository root and push:
-
-```bash
-git add -A
-git commit -m "Import platform source"
-git push origin main
-```
-
-If `git push` is refused with `403`, the GitHub App installation on this repository is
-read-only. Grant it **Contents: write** in your GitHub connector settings, or push with a
-personal access token that has `repo` scope.
-
 ## Deploy
 
 ```bash

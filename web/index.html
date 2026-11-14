@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0b0e14" />
+<title>SaiU Chess Club</title>
+<meta name="description" content="The official chess club platform of Sai University — tournaments, ratings, arena, academy and club operations." />
+<link rel="stylesheet" href="styles.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♞</text></svg>" />
+</head>
+<body>
+<div id="app" class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#/">
+      <span class="brand-mark">♞</span>
+      <span class="brand-text"><strong>SaiU</strong><em>Chess Club</em></span>
+    </a>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-foot">
+      <div class="quota" id="quota">
+        <span class="quota-dot"></span> ₹0 policy active
+      </div>
+      <a class="nav-item" href="#/features"><span class="nav-ico">◈</span> Feature catalogue</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu" id="menuBtn" aria-label="Menu">☰</button>
+      <div class="search">
+        <input id="globalSearch" type="search" placeholder="Search tournaments, notices, players…" aria-label="Search" />
+        <kbd>⌘K</kbd>
+      </div>
+      <div class="topbar-right" id="topbarRight"></div>
+    </header>
+    <main id="view" class="view" tabindex="-1"></main>
+    <footer class="footer">
+      <span>SaiU Chess Club · Sai University</span>
+      <span class="muted">Zero-cost architecture · English</span>
+    </footer>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="app.js" type="module"></script>
+</body>
+</html>

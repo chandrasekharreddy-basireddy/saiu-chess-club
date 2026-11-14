@@ -1,8 +1,17 @@
 name: verify-and-deploy
 
+# Runs only when platform source is present. A docs-only commit will not fire it.
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'web/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'wrangler.toml'
   workflow_dispatch:
 
 jobs:
@@ -29,6 +38,7 @@ jobs:
     needs: verify
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

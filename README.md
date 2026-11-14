@@ -12,8 +12,8 @@ test/           vitest suites, one file per feature
 db/schema.sql   generated from the tables the modules actually write
 ```
 
-> **Source location:** the platform source ships in the `saiu-chess-club.zip` archive. See
-> [DEPLOY.md](DEPLOY.md) for importing it and deploying.
+> **Deployment:** see [DEPLOY.md](DEPLOY.md). The D1 database is already provisioned, so
+> `npm run bundle && npx wrangler deploy` gives durable storage with no secrets.
 
 ## Why this shape
 
@@ -23,10 +23,9 @@ anywhere. So the code is organised around three rules:
 
 1. **The Worker owns authorization.** Every protected route checks a permission key on the
    server before it touches data. The browser never sees a database credential.
-2. **Persistence is behind one interface.** `Repo` has four implementations — in-memory (tests,
-   demo), Cloudflare D1 (deployed, no secrets), PostgreSQL (`postgres.js`), and Supabase
-   PostgREST over `fetch` (works on Workers with no socket). Swapping storage changes no
-   feature code.
+2. **Persistence is behind one interface.** `Repo` has three implementations — in-memory (tests,
+   demo), PostgreSQL (`postgres.js`, Hyperdrive/TCP), and Supabase PostgREST over `fetch`
+   (works on Workers with no socket). Swapping storage changes no feature code.
 3. **A feature is a module.** Each of the 50 features exports `mount(app, ctx)` and is mounted
    at `/api/v1/<slug>`. A module that fails to mount degrades to a 503 on its own slug instead
    of taking the platform down.
@@ -35,8 +34,8 @@ anywhere. So the code is organised around three rules:
 
 ```bash
 npm install
-npm test                            # 50 feature suites, 332 tests
-npm run typecheck                   # clean
+npm test                        # 50 feature suites, 332 tests
+npm run typecheck               # clean
 SEED_DEMO=1 PORT=8787 npm run dev   # API + demo club data, in-memory store
 ```
 
@@ -58,7 +57,22 @@ modules write, and emits idempotent DDL. The schema is therefore never out of da
 
 ## Deploy
 
-See [DEPLOY.md](DEPLOY.md). Short version: `npm run bundle && npx wrangler deploy`.
+```bash
+npm run bundle
+npx wrangler deploy
+# then, for durable storage:
+npx wrangler secret put SUPABASE_URL
+npx wrangler secret put SUPABASE_KEY
+```
+
+The Worker picks its store in this order: Supabase secrets → D1 binding `DB` → in-memory.
+The `saiu-chess-club` D1 database is already provisioned (id `0e85f6d4-2522-4d9f-8159-5b93e60d8f1b`)
+with its table created, so `wrangler deploy` gives durable storage with no secrets at all.
+Supabase tables are prefixed `chess_` so they never collide with another application in the
+same project.
+
+Demo logins created by `SEED_DEMO=1` (password `saiu-chess-2026`):
+`president@`, `organizer@`, `admin@`, and four members at `saiuniversity.edu.in`.
 
 ## Identity and authorization
 
